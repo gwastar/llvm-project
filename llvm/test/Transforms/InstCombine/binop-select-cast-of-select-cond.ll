@@ -244,9 +244,8 @@ define i64 @pr64669(i64 %a) {
 define i32 @or(i1 %c, i32 %a, i32 %b) {
 ; CHECK-LABEL: define i32 @or
 ; CHECK-SAME: (i1 [[C:%.*]], i32 [[A:%.*]], i32 [[B:%.*]]) {
-; CHECK-NEXT:    [[COND_ZEXT:%.*]] = zext i1 [[C]] to i32
-; CHECK-NEXT:    [[S:%.*]] = select i1 [[C]], i32 [[A]], i32 [[B]]
-; CHECK-NEXT:    [[OR:%.*]] = or i32 [[S]], [[COND_ZEXT]]
+; CHECK-NEXT:    [[TMP1:%.*]] = or i32 [[A]], 1
+; CHECK-NEXT:    [[OR:%.*]] = select i1 [[C]], i32 [[TMP1]], i32 [[B]]
 ; CHECK-NEXT:    ret i32 [[OR]]
 ;
   %cond_zext = zext i1 %c to i32
@@ -258,10 +257,8 @@ define i32 @or(i1 %c, i32 %a, i32 %b) {
 define i32 @or_with_constants(i1 %c) {
 ; CHECK-LABEL: define i32 @or_with_constants
 ; CHECK-SAME: (i1 [[C:%.*]]) {
-; CHECK-NEXT:    [[COND_ZEXT:%.*]] = zext i1 [[C]] to i32
 ; CHECK-NEXT:    [[S:%.*]] = select i1 [[C]], i32 67108863, i32 0
-; CHECK-NEXT:    [[OR:%.*]] = or i32 [[S]], [[COND_ZEXT]]
-; CHECK-NEXT:    ret i32 [[OR]]
+; CHECK-NEXT:    ret i32 [[S]]
 ;
   %cond_zext = zext i1 %c to i32
   %s = select i1 %c, i32 67108863, i32 0
@@ -274,9 +271,8 @@ define i32 @or_with_constants(i1 %c) {
 define i32 @or_disjoint(i1 %c, i32 %a, i32 %b) {
 ; CHECK-LABEL: define i32 @or_disjoint
 ; CHECK-SAME: (i1 [[C:%.*]], i32 [[A:%.*]], i32 [[B:%.*]]) {
-; CHECK-NEXT:    [[COND_ZEXT:%.*]] = zext i1 [[C]] to i32
-; CHECK-NEXT:    [[S:%.*]] = select i1 [[C]], i32 [[A]], i32 [[B]]
-; CHECK-NEXT:    [[OR:%.*]] = or disjoint i32 [[S]], [[COND_ZEXT]]
+; CHECK-NEXT:    [[TMP1:%.*]] = or i32 [[A]], 1
+; CHECK-NEXT:    [[OR:%.*]] = select i1 [[C]], i32 [[TMP1]], i32 [[B]]
 ; CHECK-NEXT:    ret i32 [[OR]]
 ;
   %cond_zext = zext i1 %c to i32

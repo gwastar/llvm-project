@@ -3743,6 +3743,10 @@ Instruction *InstCombinerImpl::visitOr(BinaryOperator &I) {
       A->getType()->isIntOrIntVectorTy(1))
     return SelectInst::Create(A, ConstantInt::getAllOnesValue(Ty), B);
 
+  if (Instruction *Res = foldBinOpOfSelectAndCastOfSelectCondition(I)) {
+	  return Res;
+  }
+
   // Note: If we've gotten to the point of visiting the outer OR, then the
   // inner one couldn't be simplified.  If it was a constant, then it won't
   // be simplified by a later pass either, so we try swapping the inner/outer
