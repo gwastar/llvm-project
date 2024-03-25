@@ -1622,6 +1622,7 @@ Instruction *InstCombinerImpl::foldBinopOfSextBoolToSelect(BinaryOperator &BO) {
 static Constant *constantFoldOperationIntoSelectOperand(Instruction &I,
                                                         SelectInst *SI,
                                                         bool IsTrueArm) {
+  Type *Ty = I.getType();
   SmallVector<Constant *> ConstOps;
   for (Value *Op : I.operands()) {
     CmpInst::Predicate Pred;
@@ -1634,6 +1635,13 @@ static Constant *constantFoldOperationIntoSelectOperand(Instruction &I,
                Pred == (IsTrueArm ? ICmpInst::ICMP_EQ : ICmpInst::ICMP_NE) &&
                isGuaranteedNotToBeUndefOrPoison(C)) {
       // Pass
+    } else if (match(Op, m_ZExtOrSExt(m_Specific(SI->getCondition())))) {
+      Instruction *Cast = cast<Instruction>(Op);
+      if (!Cast->comesBefore(SI))
+	Cast->moveBefore(SI);
+      C = IsTrueArm ? (isa<ZExtInst>(Op) ? ConstantInt::get(Ty, 1)
+                                         : ConstantInt::getAllOnesValue(Ty))
+                    : ConstantInt::getNullValue(Ty);
     } else {
       C = dyn_cast<Constant>(Op);
     }
