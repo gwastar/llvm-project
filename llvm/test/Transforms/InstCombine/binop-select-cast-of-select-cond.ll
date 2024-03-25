@@ -240,3 +240,47 @@ define i64 @pr64669(i64 %a) {
   %add = add nsw i64 %mul, %conv3
   ret i64 %add
 }
+
+define i32 @or(i1 %c, i32 %a, i32 %b) {
+; CHECK-LABEL: define i32 @or
+; CHECK-SAME: (i1 [[C:%.*]], i32 [[A:%.*]], i32 [[B:%.*]]) {
+; CHECK-NEXT:    [[COND_ZEXT:%.*]] = zext i1 [[C]] to i32
+; CHECK-NEXT:    [[S:%.*]] = select i1 [[C]], i32 [[A]], i32 [[B]]
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[S]], [[COND_ZEXT]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %cond_zext = zext i1 %c to i32
+  %s = select i1 %c, i32 %a, i32 %b
+  %or = or i32 %s, %cond_zext
+  ret i32 %or
+}
+
+define i32 @or_with_constants(i1 %c) {
+; CHECK-LABEL: define i32 @or_with_constants
+; CHECK-SAME: (i1 [[C:%.*]]) {
+; CHECK-NEXT:    [[COND_ZEXT:%.*]] = zext i1 [[C]] to i32
+; CHECK-NEXT:    [[S:%.*]] = select i1 [[C]], i32 67108863, i32 0
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[S]], [[COND_ZEXT]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %cond_zext = zext i1 %c to i32
+  %s = select i1 %c, i32 67108863, i32 0
+  %or = or i32 %s, %cond_zext
+  ret i32 %or
+}
+
+; FIXME could preserve disjoint (also nsw/nuw for add/sub/mul)
+
+define i32 @or_disjoint(i1 %c, i32 %a, i32 %b) {
+; CHECK-LABEL: define i32 @or_disjoint
+; CHECK-SAME: (i1 [[C:%.*]], i32 [[A:%.*]], i32 [[B:%.*]]) {
+; CHECK-NEXT:    [[COND_ZEXT:%.*]] = zext i1 [[C]] to i32
+; CHECK-NEXT:    [[S:%.*]] = select i1 [[C]], i32 [[A]], i32 [[B]]
+; CHECK-NEXT:    [[OR:%.*]] = or disjoint i32 [[S]], [[COND_ZEXT]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %cond_zext = zext i1 %c to i32
+  %s = select i1 %c, i32 %a, i32 %b
+  %or = or disjoint i32 %s, %cond_zext
+  ret i32 %or
+}
